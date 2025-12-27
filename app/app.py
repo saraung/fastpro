@@ -1,5 +1,3 @@
-import tempfile
-
 from fastapi import FastAPI,HTTPException,File,UploadFile,Form,Depends
 from app.schemas import PostCreate,PostResponse
 from app.db import Post,create_db_and_tables,get_async_session
@@ -10,8 +8,9 @@ from app.images import imagekit
 import shutil
 import os
 import uuid
-
-
+import tempfile
+from app.users import current_active_user,auth_backend,fastapi_users
+from app.schemas import UserRead,UserCreate,UserUpdate
 @asynccontextmanager
 async def lifespan(app:FastAPI):
     await create_db_and_tables()
@@ -19,6 +18,11 @@ async def lifespan(app:FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
+app.include_router(fastapi_users.get_auth_router(auth_backend),prefix="/auth/jwt",tags=["auth"])
+app.include_router(fastapi_users.get_register_router(UserRead,UserCreate),prefix="/auth",tags=["auth"])
+app.include_router(fastapi_users.get_reset_password_router(),prefix="/auth",tags=["auth"])
+app.include_router(fastapi_users.get_verify_router(UserRead),prefix="/auth",tags=["auth"])
+app.include_router(fastapi_users.get_users_router(UserRead,UserUpdate),prefix="/users",tags=["users"])
 @app.post("/upload")
 async def upload_file(
     file: UploadFile = File(...),
