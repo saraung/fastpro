@@ -31,3 +31,6 @@ class UserManager(UUIDIDMixin,BaseUserManager[User,uuid.UUID]):
         self, user: User, token: str, request: Request | None = None
     ) -> None:
         print(f"Verification requested for user {user.id}. Verification token:{token}")
+
+def get_jwt_strategy() -> JWTStrategy:
+    return JWTStrategy(secret=SECRET, lifetime_seconds=3600)
